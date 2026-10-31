@@ -9,6 +9,7 @@ const PORT = 5000;
 connectDB();
 
 app.use(express.json());
+app.use(cors());
 app.use("/", urlRoutes);
 app.use("/api/url", urlRoutes);
 app.use("/api/health", healthRoute);

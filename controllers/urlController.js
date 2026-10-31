@@ -9,10 +9,28 @@ const shortenUrl = async (req, res) => {
         }
         const shortId = nanoid(6);
         const newUrl = await Url.create({ originalUrl,shortId});
-        res.status(201).json(newUrl);
+        const shortUrl = `${req.protocol}://${req.get("host")}/${shortId}`;
+        res.status(201).json({
+            originalUrl: newUrl.originalUrl,
+            shortId: newUrl.shortId,
+            shortUrl
+        });
     }catch(err){
         console.error("URL creation failed:", err);
         res.status(500).json({ message: "Server error"});
+    }
+};
+
+const getOriginalUrl = async (req, res) => {
+    try {
+        const url = await Url.findOne({ shortId: req.params.shortId });
+        if (!url) {
+            return res.status(404).json({ message: "Short URL not found" });
+        }
+        res.json({ originalUrl: url.originalUrl });
+    } catch (err) {
+        console.error("URL lookup failed:", err);
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -31,4 +49,4 @@ const redirectUrl = async(req,res) => {
     }
 };
 
-module.exports = { shortenUrl, redirectUrl};
+module.exports = { shortenUrl, getOriginalUrl, redirectUrl};

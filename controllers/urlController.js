@@ -1,23 +1,28 @@
-const { nanoid} = require('nanoid');
+const { nanoid } = require('nanoid');
 const Url = require('../models/Url');
 
 const shortenUrl = async (req, res) => {
-    try{
-        const {originalUrl} = req.body;
-        if(! originalUrl){
-            return res.status(400).json({ message: "OriginalUrl is required"});
+    try {
+        const { originalUrl } = req.body;
+        if (!originalUrl) {
+            return res.status(400).json({ message: "OriginalUrl is required" });
         }
+
         const shortId = nanoid(6);
-        const newUrl = await Url.create({ originalUrl,shortId});
-        const shortUrl = `${req.protocol}://${req.get("host")}/${shortId}`;
-        res.status(201).json({
+        const newUrl = await Url.create({ originalUrl, shortId });
+        const shortUrl = `${req.protocol}://${req.get('host')}/${shortId}`;
+
+        return res.status(201).json({
+            _id: newUrl._id,
             originalUrl: newUrl.originalUrl,
             shortId: newUrl.shortId,
-            shortUrl
+            shortUrl,
+            clicks: newUrl.clicks,
+            createdAt: newUrl.createdAt
         });
-    }catch(err){
+    } catch (err) {
         console.error("URL creation failed:", err);
-        res.status(500).json({ message: "Server error"});
+        return res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -27,26 +32,27 @@ const getOriginalUrl = async (req, res) => {
         if (!url) {
             return res.status(404).json({ message: "Short URL not found" });
         }
-        res.json({ originalUrl: url.originalUrl });
+        return res.json({ originalUrl: url.originalUrl });
     } catch (err) {
         console.error("URL lookup failed:", err);
-        res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ message: "Server error" });
     }
 };
 
-const redirectUrl = async(req,res) => {
-    try{
-        const {shortId} = req.params;
-        const url = await Url.findOne({shortId});
-        if(!url){
-            return res.status(404).json({ message: "short url not found"});
+const redirectUrl = async (req, res) => {
+    try {
+        const { shortId } = req.params;
+        const url = await Url.findOne({ shortId });
+        if (!url) {
+            return res.status(404).json({ message: "short url not found" });
         }
         url.clicks++;
         await url.save();
-        res.redirect(url.originalUrl);
-    }catch(err){
-        res.status(500).json({ message: "Sever error"});
+        return res.redirect(url.originalUrl);
+    } catch (err) {
+        console.error("Redirect failed:", err);
+        return res.status(500).json({ message: "Server error" });
     }
 };
 
-module.exports = { shortenUrl, getOriginalUrl, redirectUrl};
+module.exports = { shortenUrl, getOriginalUrl, redirectUrl };

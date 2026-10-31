@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const connectDB = require("./config/db");
 const healthRoute = require("./routes/healthRoutes");
 const urlRoutes = require("./routes/urlRoutes");
@@ -124,4 +125,3 @@ app.listen( PORT, () => {
     console.log( `Server is  running on http://localhost:${PORT}`)
 });
 */
-
